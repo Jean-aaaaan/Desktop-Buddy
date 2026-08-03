@@ -5,6 +5,9 @@ const zlib = require('zlib');
 const os = require('os');
 const { spawn } = require('child_process');
 
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) app.quit();
+
 let win, tray, deskMonitor;
 let manuallyHidden = false;   // user toggled off via tray
 let userDataPath;
@@ -233,18 +236,6 @@ app.whenReady().then(() => {
     } catch {
       fs.writeFileSync(quotesPath, '[]', 'utf8');
     }
-  }
-
-  // Register login item (packaged app path works on both platforms)
-  if (process.platform === 'win32') {
-    app.setLoginItemSettings({
-      openAtLogin: true,
-      name: 'Desktop Buddy',
-      path: process.execPath,
-      args: [path.resolve(__dirname)]
-    });
-  } else {
-    app.setLoginItemSettings({ openAtLogin: true });
   }
 
   createWindow();

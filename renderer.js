@@ -48,7 +48,7 @@ const CHAR_W    = CHAR_COLS * SCALE;  // 64px
 const CHAR_H    = CHAR_ROWS * SCALE;  // 72px
 const MARGIN      = 40;    // right/top/bottom edge buffer
 const LEFT_MARGIN = 220;   // keep clear of left-side desktop icons
-const MAX_SPEED   = 320;   // px/s cap
+const MAX_SPEED   = 130;   // px/s cap
 
 // ─── STATE ─────────────────────────────────────────────────────────────────
 let canvas, ctx;
@@ -85,7 +85,7 @@ const HAPPY_MSGS = [
 
 const char = {
   x: 0, y: 0,
-  vx: 80, vy: -60,
+  vx: 35, vy: -28,
   scaleX: 1, scaleY: 1,
   facing: 1,
   timer: 0,
@@ -206,7 +206,7 @@ function update(dt) {
   updateChar(dt);
   updateBubble(dt);
   updateParticles(dt);
-  if (!bubble.visible && performance.now() - lastQuoteTime > 120_000) {
+  if (!bubble.visible && performance.now() - lastQuoteTime > 25_000) {
     lastQuoteTime = performance.now();
     getNextMessage().then(msg => showBubble(msg));
   }
@@ -221,16 +221,16 @@ function updateChar(dt) {
     wander.timer = 0;
     wander.delay = 2.5 + Math.random() * 3;
     const angle = Math.random() * Math.PI * 2;
-    const spd   = 220 + Math.random() * 140;
+    const spd   = 70 + Math.random() * 50;
     char.vx = Math.cos(angle) * spd;
     char.vy = Math.sin(angle) * spd;
   }
 
   // Re-kick if nearly stopped between scheduled kicks
-  if (Math.hypot(char.vx, char.vy) < 35) {
+  if (Math.hypot(char.vx, char.vy) < 15) {
     const angle = Math.random() * Math.PI * 2;
-    char.vx = Math.cos(angle) * 170;
-    char.vy = Math.sin(angle) * 170;
+    char.vx = Math.cos(angle) * 80;
+    char.vy = Math.sin(angle) * 80;
     wander.timer = 0;
     wander.delay = 2.5 + Math.random() * 2;
   }
@@ -249,7 +249,7 @@ function updateChar(dt) {
   char.y += char.vy * dt;
 
   // Wall bounce
-  const minX = LEFT_MARGIN + CHAR_W / 2, maxX = screenW - MARGIN - CHAR_W / 2;
+  const minX = screenW / 2, maxX = screenW - MARGIN - CHAR_W / 2;
   const minY = MARGIN + CHAR_H,           maxY = screenH - MARGIN;
   if (char.x < minX) { char.x = minX; char.vx =  Math.abs(char.vx) * 0.85; squish(true); }
   if (char.x > maxX) { char.x = maxX; char.vx = -Math.abs(char.vx) * 0.85; squish(true); }
@@ -341,7 +341,11 @@ function updateBubble(dt) {
   if      (bubble.timer < fi)         bubble.alpha = bubble.timer / fi;
   else if (bubble.timer < fi + hold)  bubble.alpha = 1;
   else if (bubble.timer < bubble.duration) bubble.alpha = 1 - (bubble.timer - fi - hold) / fo;
-  else { bubble.visible = false; bubble.alpha = 0; }
+  else {
+    bubble.visible = false;
+    bubble.alpha = 0;
+    lastQuoteTime = performance.now() - 20_000; // next quote in ~5s
+  }
 }
 
 // ─── DRAW ───────────────────────────────────────────────────────────────────
